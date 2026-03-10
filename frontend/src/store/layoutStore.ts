@@ -38,6 +38,7 @@ type LayoutState = {
   setUserAnswers: (answers: Record<string, string | number | boolean> | null) => void;
   selectCandidate: (candidateId: number) => void;
   updateRoomPolygon: (roomName: string, polygon: [number, number][]) => void;
+  setEditedCandidate: (candidate: LayoutCandidate | null) => void;
   runGeneration: () => Promise<void>;
   runAnalysis: (gate_direction: string) => Promise<void>;
   setHighlightedRoom: (roomName: string | null) => void;
@@ -46,7 +47,7 @@ type LayoutState = {
 
 const defaultRequest: GenerateLayoutsRequest = {
   plot: {
-    points: [
+    vertices: [
       [0, 0],
       [20, 0],
       [20, 10],
@@ -95,9 +96,11 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
     set((s) => ({
       request: {
         ...s.request,
-        plot: { ...s.request.plot, points },
+        plot: { ...s.request.plot, vertices: points },
       },
     })),
+
+  setEditedCandidate: (candidate) => set({ editedCandidate: candidate }),
 
   setUserAnswers: (answers) =>
     set((s) => ({ request: { ...s.request, user_answers: answers ?? undefined } })),
@@ -145,9 +148,9 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
       const rooms = state.editedCandidate.rooms.map((r) =>
         r.name === roomName
           ? {
-              ...r,
-              polygon: polygon.map(([x, y]) => [x, y] as [number, number]),
-            }
+            ...r,
+            polygon: polygon.map(([x, y]) => [x, y] as [number, number]),
+          }
           : r,
       );
       const updated: LayoutCandidate = { ...state.editedCandidate, rooms };
@@ -213,8 +216,8 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
     const candidate = state.editedCandidate
       ? state.editedCandidate
       : state.response?.candidates.find(
-          (c) => c.candidate_id === state.selectedCandidateId,
-        ) ?? state.response?.candidates[0];
+        (c) => c.candidate_id === state.selectedCandidateId,
+      ) ?? state.response?.candidates[0];
 
     if (!candidate) {
       return;

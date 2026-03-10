@@ -1,27 +1,10 @@
-"use client";
+import { StudioLayout } from "@/studio/StudioLayout";
 
-import dynamic from "next/dynamic";
+export const metadata = {
+  title: "Studio — ArchPlan AI",
+  description: "Interactive floor plan editor with AI insights",
+};
 
-const StudioLayout = dynamic(
-  () => import("@/studio/StudioLayout").then((m) => ({ default: m.StudioLayout })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#FAFAF8",
-        }}
-      >
-        Loading Studio...
-      </div>
-    ),
-  }
-);
-
-export default function StudioRoute() {
+export default function StudioPage() {
   return <StudioLayout />;
 }

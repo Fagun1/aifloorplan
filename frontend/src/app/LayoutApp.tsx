@@ -53,8 +53,8 @@ export function LayoutApp() {
     );
   }, [response, selectedCandidateId]);
 
-  const plot = request.plot.points;
-  const buildable = response?.buildable_polygon ?? request.plot.points;
+  const plot = (request.plot as any).vertices ?? (request.plot as any).points ?? [];
+  const buildable = response?.buildable_polygon ?? plot;
 
   return (
     <div

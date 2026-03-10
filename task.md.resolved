@@ -1,0 +1,67 @@
+# Task: Complete AI Architectural Planning & VR Layout Platform
+
+## Phase 1 — Foundation Completion
+- [x] **P1.1** Backend: Config module ([config/settings.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/config/settings.py)) — env vars, dotenv
+- [x] **P1.2** Backend: Database models ([models.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/models.py)) — SQLAlchemy ORM (users, projects, plots, room_requirements, layouts, question_sessions)
+- [x] **P1.3** Backend: [database.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/database.py) — async SQLAlchemy engine for Neon PostgreSQL
+- [x] **P1.4** Backend: [auth.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/auth.py) + [api/v1/routes/auth.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/api/v1/routes/auth.py) — JWT register/login/me
+- [x] **P1.5** Backend: [api/v1/routes/plots.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/api/v1/routes/plots.py) — save, validate polygon (upsert)
+- [x] **P1.6** Backend: [api/v1/routes/projects.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/api/v1/routes/projects.py) — full project CRUD
+- [x] **P1.7** Backend: [main.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/main.py) — CORS, lifespan DB creation, all routers mounted
+- [x] **P1.8** Backend: [requirements.txt](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/requirements.txt) — asyncpg, SQLAlchemy, jose, passlib, google-generativeai
+- [x] **P1.9** Backend: LLM engine — switched from OpenAI to Google Gemini
+- [x] **P1.10** Frontend: [globals.css](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/app/globals.css) — premium dark glassmorphism design system
+- [x] **P1.11** Frontend: [authStore.ts](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/store/authStore.ts) — Zustand + persist, login/register/logout
+- [x] **P1.12** Frontend: [apiClient.ts](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/lib/apiClient.ts) — expanded with auth/project/plot/layout methods
+- [x] **P1.13** Frontend: `/auth` page — login/register tabs, error handling
+- [x] **P1.14** Frontend: `/dashboard` page — project grid, score bars, stats
+- [x] **P1.15** Frontend: `/projects/new` — 3-step wizard (settings → draw plot → rooms)
+- [x] **P1.16** Frontend: [PlotCanvas.tsx](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/components/plot/PlotCanvas.tsx) — Konva.js click-to-draw polygon, 1m grid, snap
+- [x] **P1.17** Frontend: [QuestionWizard.tsx](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/components/questions/QuestionWizard.tsx) — all question types (single/multi/bool/numeric/text)
+- [x] **P1.18** Frontend: `/projects/[id]` — candidate list, question wizard, generate/regenerate
+- [x] **P1.19** Frontend: [ScoreRadar.tsx](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/components/scoring/ScoreRadar.tsx) — SVG radar chart (8 dimensions)
+- [x] **P1.20** Frontend: [types.ts](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/lib/types.ts) — updated with ImproveLayoutRequest/Response, PlotIn aliases
+- [x] **P1.21** Frontend: Backend schema [plot.py](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/api/v1/schemas/plot.py) — accepts both `vertices` and `points` alias
+- [x] **P1.22** Infrastructure: [.env](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/.env) template, [frontend/.env.local](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/.env.local), [next.config.mjs](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/next.config.mjs) port fix
+- [ ] **P1.23** Frontend: `/projects/[id]` — save layout candidate back to DB after generation
+
+## Phase 2 — Intelligence Completion
+- [ ] **P2.1** Backend: Directional setbacks (per-edge front/rear/left/right)
+- [ ] **P2.2** Backend: Soft constraint enforcement in scoring
+- [x] **P2.3** Backend: Pareto ranking wired to response
+- [x] **P2.4** Backend: WebSocket editor endpoint (`/ws/editor`)
+- [x] **P2.5** Backend: Floor-specific routes (`/api/v1/floors`)
+- [x] **P2.6** Frontend: Floor navigator UI (▲/▼ switching)
+- [x] **P2.7** Frontend: Multi-floor store (`floorStore`)
+- [x] **P2.8** Frontend: Editor tool palette (select/move/resize/add/delete)
+- [ ] **P2.9** Frontend: 0.5m grid snapping + wall snapping in Konva canvas
+- [x] **P2.10** Frontend: Property panel for selected room
+- [x] **P2.11** Frontend: Constraint violation visual overlay (red highlight)
+- [x] **P2.12** Frontend: Undo/Redo in editor (`Ctrl+Z` / `Ctrl+Y`)
+
+## Phase 3 — Immersion (VR + Export)
+- [ ] **P3.1** Backend: VR scene builder (`engines/vr/scene_builder.py`)
+- [ ] **P3.2** Backend: Material mapper + VR lighting config
+- [ ] **P3.3** Backend: Furniture placement engine (`engines/furniture/placer.py`)
+- [ ] **P3.4** Backend: `GET /api/v1/vr/scene/{pid}/rooms/{rid}` endpoint
+- [ ] **P3.5** Backend: Export service (PNG via Pillow)
+- [ ] **P3.6** Frontend: React Three Fiber + drei installed
+- [ ] **P3.7** Frontend: VR scene component (R3F Canvas + room meshes + lighting)
+- [ ] **P3.8** Frontend: Furniture items in VR (procedural mesh)
+- [ ] **P3.9** Frontend: VR camera (OrbitControls + first-person toggle)
+- [ ] **P3.10** Frontend: VR page route + double-click room transition from 2D editor
+- [ ] **P3.11** Frontend: Export page UI (PNG download)
+
+## Phase 4 — Infrastructure
+- [ ] **P4.1** Redis caching (layouts, LLM responses)
+- [ ] **P4.2** Celery async layout generation task
+- [ ] **P4.3** Structured logging (request IDs, timing)
+- [x] **P4.4** `GET /health` ✅ already done
+
+---
+
+## Servers Running
+- **Backend**: `http://localhost:8000` (uvicorn --reload)
+- **Frontend**: `http://localhost:3000` (Next.js 16 Turbopack)
+- **DB**: Neon PostgreSQL via `DATABASE_URL` in [backend/.env](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/.env) *(user must fill in)*
+- **LLM**: Google Gemini via `GOOGLE_API_KEY` in [backend/.env](file:///c:/Users/Fagun/Desktop/New%20folder%20%283%29/backend/.env) *(user must fill in)*

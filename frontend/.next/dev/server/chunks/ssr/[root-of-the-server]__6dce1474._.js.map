@@ -2,5 +2,5 @@
   "version": 3,
   "sources": [],
   "sections": [
-    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/app/page.tsx"],"sourcesContent":["import Link from \"next/link\";\n\nexport default function HomePage() {\n  return (\n    <div className=\"flex min-h-screen flex-col items-center justify-center bg-[#FAFAF8]\">\n      <h1 className=\"mb-6 text-2xl font-medium text-gray-800\">\n        Arkitekta Studio\n      </h1>\n      <Link\n        href=\"/studio\"\n        className=\"rounded-lg bg-[#2A5FE6] px-6 py-3 text-sm font-medium uppercase text-white\"\n      >\n        Open Studio\n      </Link>\n    </div>\n  );\n}\n\n"],"names":[],"mappings":";;;;;AAAA;;;AAEe,SAAS;IACtB,qBACE,6RAAC;QAAI,WAAU;;0BACb,6RAAC;gBAAG,WAAU;0BAA0C;;;;;;0BAGxD,6RAAC,yOAAI;gBACH,MAAK;gBACL,WAAU;0BACX;;;;;;;;;;;;AAKP"}}]
+    {"offset": {"line": 14, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Fagun/Desktop/New%20folder%20%283%29/frontend/src/app/page.tsx"],"sourcesContent":["import { redirect } from \"next/navigation\";\r\n\r\nexport default function RootPage() {\r\n  redirect(\"/dashboard\");\r\n}\r\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAEe,SAAS;IACtB,IAAA,gPAAQ,EAAC;AACX"}}]
 }

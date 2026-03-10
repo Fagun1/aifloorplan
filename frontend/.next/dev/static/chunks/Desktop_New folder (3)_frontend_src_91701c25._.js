@@ -71,62 +71,163 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "[project]/Desktop/New folder (3)/frontend/src/lib/apiClient.ts [app-client] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-__turbopack_context__.s([
+/**
+ * Expanded API client — covers auth, projects, plots, and layouts.
+ * All API calls require an auth token stored in localStorage.
+ */ __turbopack_context__.s([
     "analyzeLayout",
     ()=>analyzeLayout,
+    "clearToken",
+    ()=>clearToken,
+    "createProject",
+    ()=>createProject,
+    "deleteProject",
+    ()=>deleteProject,
     "explainImprovement",
     ()=>explainImprovement,
     "generateLayouts",
-    ()=>generateLayouts
+    ()=>generateLayouts,
+    "getMe",
+    ()=>getMe,
+    "getPlot",
+    ()=>getPlot,
+    "getProject",
+    ()=>getProject,
+    "getToken",
+    ()=>getToken,
+    "improveLayout",
+    ()=>improveLayout,
+    "listProjects",
+    ()=>listProjects,
+    "login",
+    ()=>login,
+    "register",
+    ()=>register,
+    "setPlot",
+    ()=>setPlot,
+    "setToken",
+    ()=>setToken,
+    "updateProject",
+    ()=>updateProject
 ]);
-async function generateLayouts(req) {
-    const resp = await fetch("/api/v1/layouts/generate", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(req)
+var __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$New__folder__$28$3$292f$frontend$2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/Desktop/New folder (3)/frontend/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
+const API_BASE = ("TURBOPACK compile-time value", "http://localhost:8000") ?? "http://localhost:8000";
+function getToken() {
+    if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+    ;
+    return localStorage.getItem("auth_token");
+}
+function setToken(token) {
+    localStorage.setItem("auth_token", token);
+}
+function clearToken() {
+    localStorage.removeItem("auth_token");
+}
+// ── Base fetch ────────────────────────────────────────────────────────────
+async function apiFetch(path, options = {}, auth = false) {
+    const headers = {
+        "Content-Type": "application/json",
+        ...options.headers
+    };
+    if (auth) {
+        const token = getToken();
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+    }
+    const resp = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers
     });
     if (!resp.ok) {
         const text = await resp.text().catch(()=>"");
         throw new Error(text || `Request failed (${resp.status})`);
     }
-    return await resp.json();
+    if (resp.status === 204) return undefined;
+    return resp.json();
+}
+async function register(email, password, full_name) {
+    return apiFetch("/api/v1/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            password,
+            full_name
+        })
+    });
+}
+async function login(email, password) {
+    return apiFetch("/api/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+            email,
+            password
+        })
+    });
+}
+async function getMe() {
+    return apiFetch("/api/v1/auth/me", {}, true);
+}
+async function createProject(data) {
+    return apiFetch("/api/v1/projects", {
+        method: "POST",
+        body: JSON.stringify(data)
+    }, true);
+}
+async function listProjects() {
+    return apiFetch("/api/v1/projects", {}, true);
+}
+async function getProject(id) {
+    return apiFetch(`/api/v1/projects/${id}`, {}, true);
+}
+async function updateProject(id, data) {
+    return apiFetch(`/api/v1/projects/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data)
+    }, true);
+}
+async function deleteProject(id) {
+    return apiFetch(`/api/v1/projects/${id}`, {
+        method: "DELETE"
+    }, true);
+}
+async function setPlot(projectId, data) {
+    return apiFetch(`/api/v1/projects/${projectId}/plot`, {
+        method: "POST",
+        body: JSON.stringify(data)
+    }, true);
+}
+async function getPlot(projectId) {
+    return apiFetch(`/api/v1/projects/${projectId}/plot`, {}, true);
+}
+async function generateLayouts(req) {
+    return apiFetch("/api/v1/layouts/generate", {
+        method: "POST",
+        body: JSON.stringify(req)
+    }, false);
+}
+async function improveLayout(req) {
+    return apiFetch("/api/v1/layouts/improve", {
+        method: "POST",
+        body: JSON.stringify(req)
+    }, false);
 }
 async function analyzeLayout(layout, gate_direction) {
-    const resp = await fetch("/api/v1/layouts/analyze", {
+    return apiFetch("/api/v1/layouts/analyze", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
         body: JSON.stringify({
             layout,
             gate_direction
         })
-    });
-    if (!resp.ok) {
-        const text = await resp.text().catch(()=>"");
-        throw new Error(text || `Request failed (${resp.status})`);
-    }
-    return await resp.json();
+    }, false);
 }
 async function explainImprovement(original, improved, gate_direction) {
-    const resp = await fetch("/api/v1/layouts/explain-improvement", {
+    return apiFetch("/api/v1/layouts/explain-improvement", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
         body: JSON.stringify({
             original_layout: original,
             improved_layout: improved,
             gate_direction
         })
-    });
-    if (!resp.ok) {
-        const text = await resp.text().catch(()=>"");
-        throw new Error(text || `Request failed (${resp.status})`);
-    }
-    return await resp.json();
+    }, false);
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
@@ -1385,7 +1486,7 @@ function ParameterPanel() {
         columnNumber: 5
     }, this);
 }
-_s(ParameterPanel, "MIX2vAh5TxVczaIvEOQcYn2MS8o=", false, function() {
+_s(ParameterPanel, "c5mD3HV4Ov8VaKqERoNYvgnz5VU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$New__folder__$28$3$292f$frontend$2f$src$2f$store$2f$layoutStore$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLayoutStore"],
         __TURBOPACK__imported__module__$5b$project$5d2f$Desktop$2f$New__folder__$28$3$292f$frontend$2f$src$2f$store$2f$studioStore$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStudioStore"]

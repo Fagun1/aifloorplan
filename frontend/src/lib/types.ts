@@ -9,8 +9,9 @@ export type RoomSpec = {
 };
 
 export type PlotIn = {
-  points: [number, number][];
-  gate_direction: GateDirection;
+  vertices: [number, number][];
+  gate_direction: GateDirection | string;
+  road_adjacency?: string[];
 };
 
 export type StructuredQuestionOut = {
@@ -28,12 +29,29 @@ export type StructuredQuestionOut = {
 export type GenerateLayoutsRequest = {
   plot: PlotIn;
   rooms: RoomSpec[];
-  setback_m: number;
-  num_candidates: number;
-  generation_seed: number;
+  setback_m?: number;
+  num_candidates?: number;
+  generation_seed?: number;
+  num_floors?: number;
   user_answers?: Record<string, string | number | boolean> | null;
   last_score_breakdown?: Record<string, number> | null;
 };
+
+export type ImproveLayoutRequest = {
+  layout: LayoutCandidate;
+  iterations?: number;
+  mutation_strength?: number;
+  generation_seed?: number;
+  gate_direction?: string;
+};
+
+export type ImproveLayoutResponse = {
+  improved_layout: LayoutCandidate;
+  original_score: ScoreBreakdown;
+  improved_score: ScoreBreakdown;
+  score_delta: number;
+};
+
 
 export type BBox = {
   min_x: number;

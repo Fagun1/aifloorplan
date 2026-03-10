@@ -5,8 +5,6 @@ import os
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-import httpx
-
 from backend.api.v1.schemas.layout import LayoutCandidate
 from backend.engines.llm.improvement_prompt_builder import (
     LayoutImprovementFeatures,
@@ -34,6 +32,31 @@ class LLMImprovementResult:
     rooms_most_affected: List[str]
 
 
+def _call_gemini(api_key: str, model: str, system_prompt: str, user_prompt: str, temperature: float = 0.2) -> dict | None:
+    """Call Google Gemini API and return parsed JSON dict, or None on failure."""
+    try:
+        import google.generativeai as genai  # type: ignore
+        genai.configure(api_key=api_key)
+        gemini = genai.GenerativeModel(
+            model_name=model,
+            generation_config=genai.types.GenerationConfig(
+                temperature=temperature,
+                response_mime_type="application/json",
+            ),
+            system_instruction=system_prompt,
+        )
+        response = gemini.generate_content(user_prompt)
+        text = response.text.strip()
+        # Strip markdown fence if present
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+        return json.loads(text)
+    except Exception:
+        return None
+
+
 class LLMArchitecturalAssistant:
     def __init__(
         self,
@@ -41,44 +64,20 @@ class LLMArchitecturalAssistant:
         api_base: str | None = None,
         api_key: str | None = None,
     ) -> None:
-        self._model = model or os.getenv("LLM_MODEL", "gpt-4o-mini")
-        self._api_base = api_base or os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
-        self._api_key = api_key or os.getenv("OPENAI_API_KEY")
+        # Support both Google and (legacy) OpenAI keys
+        self._google_key = os.getenv("GOOGLE_API_KEY", "")
+        self._model = model or os.getenv("LLM_MODEL", "gemini-1.5-flash")
         self._temperature = 0.2
 
     def analyze(self, layout: LayoutCandidate, gate_direction: str) -> LLMAnalysisResult:
         features = extract_layout_features(layout, gate_direction)
         system_prompt, user_prompt = build_analysis_prompt(features)
 
-        if not self._api_key:
-            return self._fallback_analysis(features)
+        parsed = None
+        if self._google_key:
+            parsed = _call_gemini(self._google_key, self._model, system_prompt, user_prompt, self._temperature)
 
-        payload = {
-            "model": self._model,
-            "temperature": self._temperature,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "response_format": {"type": "json_object"},
-        }
-
-        try:
-            with httpx.Client(timeout=20.0) as client:
-                resp = client.post(
-                    f"{self._api_base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._api_key}"},
-                    json=payload,
-                )
-                resp.raise_for_status()
-                data: Dict[str, Any] = resp.json()
-        except Exception:
-            return self._fallback_analysis(features)
-
-        try:
-            content = data["choices"][0]["message"]["content"]
-            parsed = json.loads(content)
-        except Exception:
+        if not parsed:
             return self._fallback_analysis(features)
 
         return LLMAnalysisResult(
@@ -98,35 +97,11 @@ class LLMArchitecturalAssistant:
         features = extract_improvement_features(original, improved, gate_direction)
         system_prompt, user_prompt = build_improvement_prompt(features)
 
-        if not self._api_key:
-            return self._fallback_improvement(features)
+        parsed = None
+        if self._google_key:
+            parsed = _call_gemini(self._google_key, self._model, system_prompt, user_prompt, self._temperature)
 
-        payload = {
-            "model": self._model,
-            "temperature": self._temperature,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            "response_format": {"type": "json_object"},
-        }
-
-        try:
-            with httpx.Client(timeout=20.0) as client:
-                resp = client.post(
-                    f"{self._api_base}/chat/completions",
-                    headers={"Authorization": f"Bearer {self._api_key}"},
-                    json=payload,
-                )
-                resp.raise_for_status()
-                data: Dict[str, Any] = resp.json()
-        except Exception:
-            return self._fallback_improvement(features)
-
-        try:
-            content = data["choices"][0]["message"]["content"]
-            parsed = json.loads(content)
-        except Exception:
+        if not parsed:
             return self._fallback_improvement(features)
 
         return LLMImprovementResult(

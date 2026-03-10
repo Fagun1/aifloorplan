@@ -11,7 +11,7 @@ export function TopBar() {
   const { request } = useLayoutStore();
 
   const handleEditPlot = () => {
-    setDraftPolygon(request.plot.points);
+    setDraftPolygon((request.plot as any).vertices ?? (request.plot as any).points ?? []);
     setMode("draft");
     setShowParameterPanel(false);
   };

@@ -95,24 +95,26 @@ class LayoutPipeline:
 
         # QUESTION_GENERATION stage (before constraint compilation / layout)
         user_input = _user_input_from_request(req, buildable_area)
-        score_breakdown = getattr(req, "last_score_breakdown", None) or {}
-        pending = self.question_engine.generate_questions(
-            user_input,
-            score_breakdown=score_breakdown if score_breakdown else None,
-        )
-        pending_out = [_to_structured_out(q) for q in pending]
         user_answers = req.user_answers or {}
-        all_answered = len(pending) == 0 or all(q.id in user_answers for q in pending)
-        if pending and not all_answered:
-            return GenerateLayoutsResponse(
-                plot_area_m2=float(plot_area),
-                plot_bbox=plot_bbox,
-                buildable_area_m2=buildable_area,
-                buildable_bbox=buildable_bbox,
-                buildable_polygon=polygon_to_coords(buildable),
-                candidates=[],
-                pending_questions=pending_out,
+        score_breakdown = getattr(req, "last_score_breakdown", None) or {}
+
+        # Only ask questions if user hasn't answered anything yet
+        if not user_answers:
+            pending = self.question_engine.generate_questions(
+                user_input,
+                score_breakdown=score_breakdown if score_breakdown else None,
             )
+            pending_out = [_to_structured_out(q) for q in pending]
+            if pending:
+                return GenerateLayoutsResponse(
+                    plot_area_m2=float(plot_area),
+                    plot_bbox=plot_bbox,
+                    buildable_area_m2=buildable_area,
+                    buildable_bbox=buildable_bbox,
+                    buildable_polygon=polygon_to_coords(buildable),
+                    candidates=[],
+                    pending_questions=pending_out,
+                )
 
         # Optional: apply answer-derived weight adjustments when proceeding to layout
         weights_override = None

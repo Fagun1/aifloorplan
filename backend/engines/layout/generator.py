@@ -46,30 +46,37 @@ class LayoutGenerator:
             raise ValueError("rooms must be non-empty")
 
         total_attempts = int(num_candidates)
-        accepted = 0
         layouts: list[Layout] = []
 
-        for cid in range(total_attempts):
-            candidate_seed = int(seed) + cid * 10007
-            layout = self._generate_single_candidate(
-                candidate_id=cid,
-                buildable=buildable,
-                room_specs=room_specs,
-                seed=candidate_seed,
-            )
-            if layout is None:
-                continue
-            layouts.append(layout)
-            accepted += 1
+        # Run up to 3 retry batches with different seeds when 0 candidates generated
+        max_retry_batches = 3
+        for retry in range(max_retry_batches + 1):
+            batch_seed = int(seed) + retry * 99991  # large prime offset per retry
+            batch: list[Layout] = []
+            for cid in range(total_attempts):
+                candidate_seed = batch_seed + cid * 10007
+                layout = self._generate_single_candidate(
+                    candidate_id=len(layouts) + cid,
+                    buildable=buildable,
+                    room_specs=room_specs,
+                    seed=candidate_seed,
+                )
+                if layout is not None:
+                    batch.append(layout)
 
-        rejection_rate = 0.0
-        if total_attempts > 0:
-            rejection_rate = 1.0 - (accepted / float(total_attempts))
+            layouts.extend(batch)
+            # Stop retrying once we have at least 1 candidate
+            if layouts:
+                break
+            logger.warning(f"layout_retry batch={retry} — no candidates, retrying with new seed")
+
+        accepted = len(layouts)
+        rejection_rate = 1.0 - (accepted / float(total_attempts * (retry + 1))) if total_attempts > 0 else 0.0
 
         logger.info(
             "layout_generation_attempts",
             extra={
-                "total_attempts": total_attempts,
+                "total_attempts": total_attempts * (retry + 1),
                 "valid_candidates": accepted,
                 "rejection_rate": rejection_rate,
             },
@@ -300,6 +307,7 @@ class LayoutGenerator:
 
         min_x, min_y, max_x, max_y = buildable.bounds
         depth = max(max_y - min_y, 1e-6)
+        buildable_area = float(buildable.area)
 
         front_edge = LineString([(min_x, min_y), (max_x, min_y)])
         outer_boundary = buildable.boundary
@@ -322,7 +330,7 @@ class LayoutGenerator:
             kind = room_kind(room)
             poly = room.polygon
 
-            # Aspect ratio bias based on room type.
+            # Aspect ratio check — widened limits for small plots
             bx_min, by_min, bx_max, by_max = poly.bounds
             bw = bx_max - bx_min
             bh = by_max - by_min
@@ -330,11 +338,12 @@ class LayoutGenerator:
                 return False
             ratio = bw / bh
 
+            # Looser limits: allow 0.4..2.5 for living/bed, 0.3..3.0 for kitchen
             if kind in ("bedroom", "living"):
-                if ratio < 0.6 or ratio > 1.8:
+                if ratio < 0.4 or ratio > 2.5:
                     return False
             elif kind == "kitchen":
-                if ratio > 2.2:
+                if ratio > 3.0:
                     return False
 
             # Boundary exposure logic.
@@ -352,7 +361,7 @@ class LayoutGenerator:
 
             cy = float(poly.centroid.y)
             t = (cy - min_y) / depth
-            in_front_zone = t <= 0.25
+            in_front_zone = t <= 0.35  # slightly wider front zone
 
             if kind == "kitchen" and touches_outer:
                 has_kitchen_on_boundary = True
@@ -363,14 +372,20 @@ class LayoutGenerator:
             if kind == "living" and (in_front_zone or touches_front):
                 has_living_front_zone = True
 
-        if any(room_kind(r) == "kitchen" for r in rooms) and not has_kitchen_on_boundary:
+        has_kitchen = any(room_kind(r) == "kitchen" for r in rooms)
+        has_bedroom = any(room_kind(r) == "bedroom" for r in rooms)
+        has_living = any(room_kind(r) == "living" for r in rooms)
+
+        # Kitchen constraint: skip if plot is small (< 60 m2) or no kitchen
+        if has_kitchen and buildable_area >= 60 and not has_kitchen_on_boundary:
             return False
 
-        if any(room_kind(r) == "bedroom" for r in rooms) and not has_bedroom_not_front:
-            return False
-
-        if any(room_kind(r) == "living" for r in rooms) and not has_living_front_zone:
-            return False
+        # Bedroom/living: advisory only on small plots, strict on large ones
+        if buildable_area >= 80:
+            if has_bedroom and not has_bedroom_not_front:
+                return False
+            if has_living and not has_living_front_zone:
+                return False
 
         return True
 
