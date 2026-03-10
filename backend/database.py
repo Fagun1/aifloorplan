@@ -1,6 +1,8 @@
 """
-Async SQLAlchemy database engine for Neon PostgreSQL.
-Uses sqlalchemy.engine.URL to prevent asyncpg SSL kwarg mismatch.
+Async SQLAlchemy database engine.
+
+- Production: Neon/Postgres via asyncpg
+- Local dev: SQLite via aiosqlite (optional)
 """
 from __future__ import annotations
 
@@ -26,6 +28,15 @@ def _build_engine_args(raw_url: str):
     asyncpg does NOT accept sslmode/channel_binding as DSN params or kwargs,
     so we strip them and pass an ssl.SSLContext via connect_args.
     """
+    # Local dev SQLite support (no network/DNS needed)
+    if raw_url.startswith("sqlite"):
+        return raw_url, {
+            "connect_args": {"check_same_thread": False},
+            "pool_pre_ping": False,
+            "pool_size": 1,
+            "max_overflow": 0,
+        }
+
     parsed = urlparse(raw_url)
     params = parse_qs(parsed.query, keep_blank_values=True)
 
@@ -65,7 +76,12 @@ def _build_engine_args(raw_url: str):
         ctx.verify_mode = ssl.CERT_NONE
         connect_args["ssl"] = ctx
 
-    return sa_url, connect_args
+    return sa_url, {
+        "connect_args": connect_args,
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+    }
 
 
 def _make_engine():
@@ -77,15 +93,8 @@ def _make_engine():
             "Example: postgresql+asyncpg://user:pass@ep-xxx.neon.tech/neondb?sslmode=require"
         )
 
-    sa_url, connect_args = _build_engine_args(raw_url)
-    return create_async_engine(
-        sa_url,
-        echo=False,
-        pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=10,
-        connect_args=connect_args,
-    )
+    sa_url, engine_kwargs = _build_engine_args(raw_url)
+    return create_async_engine(sa_url, echo=False, **engine_kwargs)
 
 
 _engine = None

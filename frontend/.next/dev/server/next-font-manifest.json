@@ -1,12 +1,12 @@
 {
   "app": {
-    "[project]/Desktop/New folder (3)/frontend/src/app/auth/page": [
+    "[project]/src/app/auth/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/Desktop/New folder (3)/frontend/src/app/dashboard/page": [
+    "[project]/src/app/dashboard/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/Desktop/New folder (3)/frontend/src/app/page": [
+    "[project]/src/app/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ]
   },
